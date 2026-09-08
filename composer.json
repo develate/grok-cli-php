@@ -3,7 +3,6 @@
     "description": "A PHP SDK for controlling Grok Build via ACP and headless CLI.",
     "type": "library",
     "license": "MIT",
-    "version": "1.0.0",
     "autoload": {
         "psr-4": {
             "Develate\\GrokCli\\": "src/"

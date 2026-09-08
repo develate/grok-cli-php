@@ -17,6 +17,7 @@ use Develate\GrokCli\Process\GrokExecutable;
 use Develate\GrokCli\Process\ProcessFactory;
 use Develate\GrokCli\Update\SessionUpdateParser;
 use Develate\GrokCli\Value\Identity;
+use Develate\GrokCli\Value\ModelInfo;
 use Develate\GrokCli\Value\PermissionMode;
 use Develate\GrokCli\Value\ReasoningEffort;
 use Develate\GrokCli\Value\RunMetadata;
@@ -175,6 +176,10 @@ final class Grok
         );
         $prompt = is_string($prompt) ? Prompt::from($prompt, $images) : $prompt;
 
+        if (PHP_OS_FAMILY === 'Darwin' && $sandbox === SandboxProfile::ReadOnly) {
+            $this->version();
+        }
+
         return $this->headless()->run(
             $prompt,
             $options,
@@ -272,7 +277,7 @@ final class Grok
     }
 
     /**
-     * @return list<\Develate\GrokCli\Value\ModelInfo>
+     * @return list<ModelInfo>
      */
     public function models(): array
     {

@@ -12,7 +12,9 @@ use Develate\GrokCli\Result;
 use Develate\GrokCli\ResultBuilder;
 use Develate\GrokCli\RunOptions;
 use Develate\GrokCli\SessionOptions;
+use Develate\GrokCli\Update\SessionUpdate;
 use Develate\GrokCli\Value\RunMetadata;
+use Develate\GrokCli\Value\SandboxProfile;
 use Develate\GrokCli\Value\UsageSource;
 
 final class HeadlessClient
@@ -28,11 +30,10 @@ final class HeadlessClient
         private readonly ArgumentBuilder $arguments = new ArgumentBuilder,
         private readonly MessagesStreamParser $parser = new MessagesStreamParser,
         private readonly string $grokVersion = '',
-    ) {
-    }
+    ) {}
 
     /**
-     * @return \Generator<int, \Develate\GrokCli\Update\SessionUpdate, void, Result>
+     * @return \Generator<int, SessionUpdate, void, Result>
      */
     public function stream(
         Prompt $prompt,
@@ -47,6 +48,18 @@ final class HeadlessClient
             run: $run,
             resumeSessionId: $resumeSessionId,
         );
+        $compatibility = new MacReadOnlySandbox;
+        if ($resumeSessionId === null && $session->sandbox === SandboxProfile::ReadOnly && $compatibility->applicable($this->grokVersion, $this->env)) {
+            $grokHome = $this->env['GROK_HOME'] ?? getenv('GROK_HOME');
+            if (! is_string($grokHome) || $grokHome === '') {
+                $userHome = $this->env['HOME'] ?? getenv('HOME');
+                $grokHome = $userHome.'/.grok';
+            }
+            $position = array_search('--sandbox', $command, true);
+            if ($position !== false) {
+                $command[$position + 1] = $compatibility->install($grokHome);
+            }
+        }
         $process = $this->processes->create(
             $command,
             $session->cwd,
@@ -68,6 +81,7 @@ final class HeadlessClient
             if ($this->parser->isResult($decoded)) {
                 $resultPayload = $decoded;
                 $builder->setSessionId((string) ($decoded['session_id'] ?? ''));
+
                 continue;
             }
             foreach ($this->parser->parse($decoded) as $update) {
