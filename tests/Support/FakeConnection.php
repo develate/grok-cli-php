@@ -32,6 +32,7 @@ final class FakeConnection implements Connection
         '_meta' => [
             'sessionId' => 'session-one',
             'requestId' => 'req-1',
+            'modelId' => 'grok-4.6',
             'usage' => [
                 'inputTokens' => 100,
                 'outputTokens' => 20,

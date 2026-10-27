@@ -58,10 +58,18 @@ final class ResultBuilder
 
     /**
      * @param  array<string, mixed>  $promptResult
+     * @param  string|null  $effectiveModel  the model the run executed on, when
+     *                                       the prompt result itself does not name it
      */
-    public function build(array $promptResult, RunMetadata $metadata, UsageSource $source = UsageSource::Acp): Result
-    {
+    public function build(
+        array $promptResult,
+        RunMetadata $metadata,
+        UsageSource $source = UsageSource::Acp,
+        ?string $effectiveModel = null,
+    ): Result {
         $meta = is_array($promptResult['_meta'] ?? null) ? $promptResult['_meta'] : [];
+        $modelId = $meta['modelId'] ?? $meta['model_id'] ?? null;
+        $model = self::modelName($modelId) ?? self::modelName($effectiveModel);
         $usagePayload = is_array($meta['usage'] ?? null) ? $meta['usage'] : (is_array($promptResult['usage'] ?? null) ? $promptResult['usage'] : $meta);
         $incomplete = (bool) ($promptResult['usage_is_incomplete'] ?? $meta['usage_is_incomplete'] ?? false);
         $usage = Usage::fromArray($usagePayload, $source, $incomplete);
@@ -102,6 +110,12 @@ final class ResultBuilder
                 capabilities: $metadata->capabilities,
             ),
             raw: $promptResult,
+            model: $model,
         );
+    }
+
+    private static function modelName(mixed $value): ?string
+    {
+        return is_string($value) && trim($value) !== '' ? trim($value) : null;
     }
 }

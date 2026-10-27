@@ -39,6 +39,7 @@ final class SessionTest extends TestCase
         $this->assertSame(100, $result->usage->inputTokens);
         $this->assertSame(40, $result->usage->cacheReadInputTokens);
         $this->assertSame('acp', $result->usage->source->value);
+        $this->assertSame('grok-4.6', $result->model);
         $this->assertNotNull($result->cost);
 
         $methods = array_column($connection->requests, 0);

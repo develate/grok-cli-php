@@ -68,6 +68,7 @@ final class HeadlessClient
         );
         $builder = new ResultBuilder($resumeSessionId ?? '');
         $resultPayload = [];
+        $model = null;
 
         $lines = $process->lines();
         foreach ($lines as $line) {
@@ -77,6 +78,11 @@ final class HeadlessClient
             }
             if (($decoded['type'] ?? null) === 'system' && ($decoded['subtype'] ?? null) === 'init') {
                 $builder->setSessionId((string) ($decoded['session_id'] ?? ''));
+                $model ??= self::modelName($decoded['model'] ?? null);
+            }
+            if ($model === null && ($decoded['type'] ?? null) === 'assistant') {
+                $message = is_array($decoded['message'] ?? null) ? $decoded['message'] : [];
+                $model ??= self::modelName($message['model'] ?? null);
             }
             if ($this->parser->isResult($decoded)) {
                 $resultPayload = $decoded;
@@ -110,7 +116,7 @@ final class HeadlessClient
             $resultPayload['text'] = $resultPayload['result'];
         }
 
-        return $builder->build($resultPayload, $metadata, UsageSource::Headless);
+        return $builder->build($resultPayload, $metadata, UsageSource::Headless, $model);
     }
 
     public function run(
@@ -124,5 +130,10 @@ final class HeadlessClient
         }
 
         return $stream->getReturn();
+    }
+
+    private static function modelName(mixed $value): ?string
+    {
+        return is_string($value) && trim($value) !== '' ? trim($value) : null;
     }
 }

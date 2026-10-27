@@ -32,7 +32,7 @@ $grok = new Grok();
 
 $session = $grok->session(
     cwd: '/var/www/app',
-    model: 'grok-4.6',
+    model: 'grok-4.7',
     reasoningEffort: ReasoningEffort::High,
     permissionMode: PermissionMode::DontAsk,
     sandbox: SandboxProfile::Strict,
@@ -53,6 +53,7 @@ $result = $run->result();
 echo $result->text;
 echo $result->usage->inputTokens;
 echo $result->cost?->usd;
+echo $result->model; // the model the run executed on
 ```
 
 `$session->prompt('...')` drains the stream and returns the `Result`. Follow-up prompts reuse the same ACP session. Resume with `$grok->resume($sessionId, $cwd)` and branch with `$session->fork()`.

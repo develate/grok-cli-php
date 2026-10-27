@@ -35,6 +35,7 @@ final readonly class Result
         public mixed $structuredOutput,
         public RunMetadata $metadata,
         private array $raw = [],
+        public ?string $model = null,
     ) {
     }
 
